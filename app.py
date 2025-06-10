@@ -1,17 +1,25 @@
 # 導入所需的 Flask 相關模組
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 # 導入自定義的資料模型
-from models import User, Post, MRTCarriage, MRTStream, Comment
+from models import User, Post, MRTCarriage, MRTStream, Comment, init_db
 # 導入日期時間處理模組
 from datetime import datetime
 from functools import wraps
 import os
-from config import Config
+
+# 配置
+MONGODB_URI = os.environ.get('MONGODB_URI', 'mongodb+srv://william:Aa22303248@cluster0.mpwsv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'b4fcc977cfcc1f1befbee58aecac6b5d3f710e09626bec8d02a3e90ad5579844')
+DEBUG = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+
+# 初始化資料庫連接
+init_db(MONGODB_URI)
 
 # 創建 Flask 應用程式實例
 app = Flask(__name__)
 # 設定應用程式密鑰，用於會話管理和訊息閃現
-app.secret_key = Config.SECRET_KEY
+app.secret_key = SECRET_KEY
+app.debug = DEBUG
 
 # 登入要求裝飾器
 def login_required(f):

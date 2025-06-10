@@ -5,10 +5,6 @@ from datetime import datetime
 from pymongo import MongoClient
 from bson import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
-try:
-    from config import Config
-except ImportError:
-    from .config import Config
 
 def get_local_ip():
     """獲取本機IP地址"""
@@ -22,11 +18,15 @@ def get_local_ip():
     except:
         return 'localhost'
 
-# MongoDB 連接設置
-client = MongoClient(Config.MONGODB_URI)
+# MongoDB 連接和資料庫會在運行時設置
+client = None
+db = None
 
-# 選擇資料庫
-db = client.flask_app
+def init_db(mongodb_uri):
+    """初始化資料庫連接"""
+    global client, db
+    client = MongoClient(mongodb_uri)
+    db = client.flask_app
 
 # User（用戶）集合操作類
 class User:
