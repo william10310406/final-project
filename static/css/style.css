@@ -55,7 +55,7 @@ nav a:hover {
 }
 
 /* 頁尾樣式 */
-footer {
+.small-footer {
     /* 設定背景顏色 */
     background-color: #333;
     /* 設定文字顏色 */
@@ -63,12 +63,14 @@ footer {
     /* 文字置中 */
     text-align: center;
     /* 設定內部間距 */
-    padding: 1rem;
+    padding: 0.5rem;
     /* 固定在頁面底部 */
     position: fixed;
     bottom: 0;
     /* 設定寬度為全寬 */
     width: 100%;
+    /* 設定字體大小 */
+    font-size: 0.8rem;
 }
 
 /* 文章列表樣式 */
