@@ -35,6 +35,10 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('about') }}">關於</a>
                     </li>
+                    <!-- 添加捷運資訊連結 -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('mrt_dashboard') }}">捷運資訊</a>
+                    </li>
                     <!-- 條件渲染：只有登入用戶才能看到發布文章選項 -->
                     {% if 'user_id' in session %}
                     <li class="nav-item">

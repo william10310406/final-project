@@ -1,7 +1,7 @@
 # 導入所需的 Flask 相關模組
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 # 導入自定義的資料模型
-from models import User, Post
+from models import User, Post, MRTCarriage, MRTStream
 # 導入日期時間處理模組
 from datetime import datetime
 from functools import wraps
@@ -144,8 +144,36 @@ def logout():
     flash('您已成功登出', 'success')
     return redirect(url_for('index'))
 
+# 捷運資料相關路由
+@app.route('/mrt')
+def mrt_dashboard():
+    """顯示捷運資料儀表板"""
+    return render_template('mrt_dashboard.html')
+
+@app.route('/api/mrt/carriage/<line_name>')
+def get_carriage_data(line_name):
+    """獲取特定路線的車廂擁擠度資料"""
+    data = MRTCarriage.get_latest_by_line(line_name)
+    return jsonify([{
+        'station_name': c.station_name,
+        'to_terminal': c.to_terminal,  # 現在是一個包含6個值的列表
+        'to_start': c.to_start,        # 現在是一個包含6個值的列表
+        'station_code': c.station_code
+    } for c in data])
+
+@app.route('/api/mrt/stream')
+def get_stream_data():
+    """獲取捷運人流量資料"""
+    data = MRTStream.get_daily_data()
+    return jsonify([{
+        'timestamp': c.time,  # 直接使用時間字串
+        'count': c.count,
+        'date': c.date,
+        'weekday': c.weekday
+    } for c in data])
+
 # 只在直接執行此檔案時運行應用程式
 if __name__ == '__main__':
     # debug=True 啟用調試模式，顯示詳細的錯誤信息
     # port=5001 指定使用 5001 端口（避免與 AirPlay 衝突）
-    app.run(debug=True, port=5001) 
+    app.run(debug=True, port=5002) 
