@@ -5,10 +5,6 @@ from datetime import datetime
 from pymongo import MongoClient
 from bson import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
-from dotenv import load_dotenv
-
-# 載入環境變數
-load_dotenv()
 
 def get_local_ip():
     """獲取本機IP地址"""
@@ -23,7 +19,7 @@ def get_local_ip():
         return 'localhost'
 
 # MongoDB 連接設置
-# 優先使用環境變數中的連接字符串，如果沒有則使用默認的本地連接
+# 使用環境變數中的連接字符串
 MONGODB_URI = os.getenv('MONGODB_URI', 'mongodb+srv://william:Aa22303248@cluster0.mpwsv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
 client = MongoClient(MONGODB_URI)
 
