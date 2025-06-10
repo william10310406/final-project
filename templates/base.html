@@ -1,24 +1,33 @@
 <!DOCTYPE html>
+<!-- 設定網頁語言為繁體中文 -->
 <html lang="zh-TW">
 <head>
+    <!-- 設定字符編碼為 UTF-8 -->
     <meta charset="UTF-8">
+    <!-- 設定響應式視窗 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 動態設定頁面標題，由子模板提供標題內容 -->
     <title>{% block title %}{% endblock %} - My Flask Website</title>
+    <!-- 連結到 CSS 樣式表，使用 Flask 的 url_for 函數動態生成 URL -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+    <!-- 導航欄區域 -->
     <nav>
         <ul>
+            <!-- 使用 url_for 函數生成導航連結 -->
             <li><a href="{{ url_for('home') }}">首頁</a></li>
             <li><a href="{{ url_for('about') }}">關於</a></li>
         </ul>
     </nav>
     
+    <!-- 主要內容區域，由子模板提供具體內容 -->
     <main>
         {% block content %}
         {% endblock %}
     </main>
 
+    <!-- 頁尾區域 -->
     <footer>
         <p>&copy; 2024 My Flask Website</p>
     </footer>

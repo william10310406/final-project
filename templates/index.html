@@ -1,10 +1,15 @@
+<!-- 繼承基礎模板 -->
 {% extends "base.html" %}
 
+<!-- 定義頁面標題區塊 -->
 {% block title %}首頁{% endblock %}
 
+<!-- 定義頁面主要內容區塊 -->
 {% block content %}
 <div class="container">
+    <!-- 頁面標題 -->
     <h1>歡迎來到我的網站</h1>
+    <!-- 頁面介紹文字 -->
     <p>這是一個使用 Flask 建立的網站。</p>
 </div>
 {% endblock %} 
