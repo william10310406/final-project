@@ -69,4 +69,41 @@ footer {
     bottom: 0;
     /* 設定寬度為全寬 */
     width: 100%;
+}
+
+/* 文章列表樣式 */
+.posts {
+    /* 設定文章間距 */
+    margin-top: 2rem;
+}
+
+/* 單篇文章樣式 */
+.post {
+    /* 設定文章邊框和間距 */
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* 文章標題樣式 */
+.post h2 {
+    /* 設定標題大小和顏色 */
+    font-size: 1.5rem;
+    color: #333;
+    margin-top: 0;
+}
+
+/* 文章元資訊樣式 */
+.post .meta {
+    /* 設定作者和日期資訊的樣式 */
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+/* 文章內容樣式 */
+.post .content {
+    /* 設定文章內容的行高 */
+    line-height: 1.6;
 } 
