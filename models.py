@@ -48,7 +48,7 @@ class User:
         self.username = username
         self.email = email
         if password:
-            self.password_hash = generate_password_hash(password)
+            self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
         self.created_at = created_at or datetime.utcnow()
         if _id:
             self._id = _id
