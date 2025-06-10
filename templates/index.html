@@ -34,14 +34,23 @@
         <!-- 使用 Bootstrap 的卡片組件顯示每篇文章 -->
         <div class="card mb-3">
             <div class="card-body">
-                <!-- 文章標題 -->
-                <h5 class="card-title">{{ post.title }}</h5>
-                <!-- 文章內容 -->
-                <p class="card-text">{{ post.content }}</p>
-                <!-- 文章發布時間，使用 strftime 格式化日期時間 -->
-                <p class="card-text">
-                    <small class="text-muted">Posted on {{ post.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</small>
-                </p>
+                <!-- 文章標題和連結 -->
+                <h5 class="card-title">
+                    <a href="{{ url_for('view_post', post_id=post._id) }}" class="text-decoration-none">
+                        {{ post.title }}
+                    </a>
+                </h5>
+                <!-- 文章內容預覽 -->
+                <p class="card-text">{{ post.content[:200] }}{% if post.content|length > 200 %}...{% endif %}</p>
+                <!-- 文章元資訊 -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <p class="card-text">
+                        <small class="text-muted">Posted on {{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                    </p>
+                    <a href="{{ url_for('view_post', post_id=post._id) }}" class="btn btn-outline-primary btn-sm">
+                        閱讀全文
+                    </a>
+                </div>
             </div>
         </div>
         {% endfor %}

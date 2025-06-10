@@ -1,16 +1,17 @@
 # 導入所需的 Flask 相關模組
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 # 導入自定義的資料模型
-from models import User, Post, MRTCarriage, MRTStream
+from models import User, Post, MRTCarriage, MRTStream, Comment
 # 導入日期時間處理模組
 from datetime import datetime
 from functools import wraps
 import os
+from config import Config
 
 # 創建 Flask 應用程式實例
 app = Flask(__name__)
 # 設定應用程式密鑰，用於會話管理和訊息閃現
-app.secret_key = os.environ.get('SECRET_KEY', 'dev')
+app.secret_key = Config.SECRET_KEY
 
 # 登入要求裝飾器
 def login_required(f):
@@ -173,7 +174,51 @@ def get_stream_data():
         'weekday': c.weekday
     } for c in data])
 
+@app.route('/post/<post_id>')
+def view_post(post_id):
+    """
+    顯示特定文章的詳細內容和留言
+    參數:
+        post_id: 文章ID
+    """
+    # 查找文章
+    post = Post.find_by_id(post_id)
+    if post:
+        # 獲取文章作者
+        author = User.find_by_id(post.user_id)
+        # 獲取文章的所有留言
+        comments = Comment.find_by_post_id(post_id)
+        # 獲取每個留言的作者
+        comment_authors = {str(comment.user_id): User.find_by_id(comment.user_id) for comment in comments}
+        return render_template('view_post.html', post=post, author=author, comments=comments, comment_authors=comment_authors)
+    return redirect(url_for('index'))
+
+@app.route('/post/<post_id>/comment', methods=['POST'])
+@login_required
+def add_comment(post_id):
+    """
+    添加留言到特定文章
+    參數:
+        post_id: 文章ID
+    """
+    content = request.form.get('content')
+    if content:
+        # 創建新留言
+        comment = Comment(
+            content=content,
+            post_id=post_id,
+            user_id=session['user_id']
+        )
+        comment.save()
+        flash('留言發布成功！', 'success')
+    else:
+        flash('留言內容不能為空', 'danger')
+    return redirect(url_for('view_post', post_id=post_id))
+
 # 只在直接執行此檔案時運行應用程式
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 10000))
-    app.run(host='0.0.0.0', port=port) 
+    app.run(
+        host=Config.HOST,
+        port=Config.PORT,
+        debug=Config.DEBUG
+    ) 
