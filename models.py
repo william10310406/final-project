@@ -33,7 +33,7 @@ class User:
     @classmethod
     def get_collection(cls):
         """獲取集合（相當於關聯式資料庫的表格）"""
-        return db.users if db else None
+        return None if db is None else db.users
 
     def __init__(self, username, email, password=None, created_at=None, _id=None):
         """
@@ -189,7 +189,7 @@ class Post:
     @classmethod
     def get_collection(cls):
         """獲取集合"""
-        return db.posts if db else None
+        return None if db is None else db.posts
 
     def __init__(self, title, content, user_id, created_at=None, _id=None):
         """
@@ -304,7 +304,7 @@ class MRTCarriage:
     @classmethod
     def get_collection(cls):
         """獲取集合"""
-        return db.mrt_carriage if db else None
+        return None if db is None else db.mrt_carriage
 
     def __init__(self, line_code=None, line_name=None, station_code=None, station_name=None, 
                  to_terminal=None, to_start=None, timestamp=None, _id=None):
@@ -389,7 +389,7 @@ class MRTStream:
     @classmethod
     def get_collection(cls):
         """獲取集合"""
-        return db.mrt_stream if db else None
+        return None if db is None else db.mrt_stream
 
     def __init__(self, count=None, timestamp=None, date=None, time=None, weekday=None, _id=None):
         self.count = count
@@ -436,7 +436,7 @@ class Comment:
     @classmethod
     def get_collection(cls):
         """獲取集合"""
-        return db.comments if db else None
+        return None if db is None else db.comments
 
     def __init__(self, content, post_id, user_id, created_at=None):
         """
