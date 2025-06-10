@@ -60,7 +60,7 @@ class User:
             self: 儲存後的用戶物件
         """
         collection = self.get_collection()
-        if not collection:
+        if collection is None:
             raise RuntimeError("Database not initialized")
             
         if not hasattr(self, '_id'):
@@ -84,9 +84,10 @@ class User:
         返回:
             bool: 密碼是否正確
         """
-        if not hasattr(self, 'password_hash'):
+        password_hash = getattr(self, 'password_hash', None)
+        if password_hash is None:
             return False
-        return check_password_hash(self.password_hash, password)
+        return check_password_hash(password_hash, password)
 
     @classmethod
     def find_by_username(cls, username):
@@ -98,7 +99,7 @@ class User:
             User 物件或 None
         """
         collection = cls.get_collection()
-        if not collection:
+        if collection is None:
             raise RuntimeError("Database not initialized")
             
         user_data = collection.find_one({'username': username})
@@ -123,7 +124,7 @@ class User:
             User 物件或 None
         """
         collection = cls.get_collection()
-        if not collection:
+        if collection is None:
             raise RuntimeError("Database not initialized")
             
         user_data = collection.find_one({'email': email})
@@ -146,7 +147,7 @@ class User:
             用戶物件列表
         """
         collection = cls.get_collection()
-        if not collection:
+        if collection is None:
             raise RuntimeError("Database not initialized")
             
         return [cls(
@@ -165,7 +166,7 @@ class User:
             User 物件或 None
         """
         collection = cls.get_collection()
-        if not collection:
+        if collection is None:
             raise RuntimeError("Database not initialized")
             
         try:
@@ -215,7 +216,7 @@ class Post:
             self: 儲存後的文章物件
         """
         collection = self.get_collection()
-        if not collection:
+        if collection is None:
             raise RuntimeError("Database not initialized")
             
         if not hasattr(self, '_id'):
@@ -239,7 +240,7 @@ class Post:
             文章物件列表
         """
         collection = cls.get_collection()
-        if not collection:
+        if collection is None:
             raise RuntimeError("Database not initialized")
             
         return [cls(
@@ -260,7 +261,7 @@ class Post:
             文章物件列表
         """
         collection = cls.get_collection()
-        if not collection:
+        if collection is None:
             raise RuntimeError("Database not initialized")
             
         return [cls(
@@ -281,7 +282,7 @@ class Post:
             Post 物件或 None
         """
         collection = cls.get_collection()
-        if not collection:
+        if collection is None:
             raise RuntimeError("Database not initialized")
             
         try:
@@ -320,7 +321,7 @@ class MRTCarriage:
 
     def _parse_carriage_status(self, status_str):
         """解析車廂擁擠度字串"""
-        if not status_str or status_str == '----':
+        if status_str is None or status_str == '----':
             return None
             
         # 將字串轉換為車廂列表
@@ -355,7 +356,7 @@ class MRTCarriage:
             MRTCarriage 物件列表
         """
         collection = MRTCarriage.get_collection()
-        if not collection:
+        if collection is None:
             raise RuntimeError("Database not initialized")
             
         # 獲取最新的時間戳
@@ -364,7 +365,7 @@ class MRTCarriage:
             sort=[('timestamp', -1)]
         )
         
-        if not latest:
+        if latest is None:
             return []
         
         # 獲取該時間戳的所有資料
@@ -410,13 +411,13 @@ class MRTStream:
             MRTStream 物件列表
         """
         collection = MRTStream.get_collection()
-        if not collection:
+        if collection is None:
             raise RuntimeError("Database not initialized")
             
         # 如果沒有指定日期，使用最新的資料
-        if not target_date:
+        if target_date is None:
             latest = collection.find_one(sort=[('timestamp', -1)])
-            if latest:
+            if latest is not None:
                 target_date = latest['date']
         
         # 查詢指定日期的資料
@@ -459,7 +460,7 @@ class Comment:
             self: 儲存後的留言物件
         """
         collection = self.get_collection()
-        if not collection:
+        if collection is None:
             raise RuntimeError("Database not initialized")
             
         if not hasattr(self, '_id'):
@@ -485,7 +486,7 @@ class Comment:
             Comment 物件列表
         """
         collection = cls.get_collection()
-        if not collection:
+        if collection is None:
             raise RuntimeError("Database not initialized")
             
         return [cls(
@@ -505,7 +506,7 @@ class Comment:
             Comment 物件列表
         """
         collection = cls.get_collection()
-        if not collection:
+        if collection is None:
             raise RuntimeError("Database not initialized")
             
         return [cls(

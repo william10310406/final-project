@@ -226,7 +226,7 @@ def add_comment(post_id):
 # 只在直接執行此檔案時運行應用程式
 if __name__ == '__main__':
     app.run(
-        host=Config.HOST,
-        port=Config.PORT,
-        debug=Config.DEBUG
+        host='0.0.0.0',
+        port=int(os.environ.get('PORT', 8080)),
+        debug=DEBUG
     ) 
