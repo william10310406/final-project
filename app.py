@@ -7,7 +7,7 @@ from datetime import datetime
 from functools import wraps
 import os
 
-# 配置
+# 配置：從環境變數讀取設置，如果沒有則使用默認值
 MONGODB_URI = os.environ.get('MONGODB_URI', 'mongodb+srv://william:Aa22303248@cluster0.mpwsv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
 SECRET_KEY = os.environ.get('SECRET_KEY', 'b4fcc977cfcc1f1befbee58aecac6b5d3f710e09626bec8d02a3e90ad5579844')
 DEBUG = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
@@ -21,7 +21,7 @@ app = Flask(__name__)
 app.secret_key = SECRET_KEY
 app.debug = DEBUG
 
-# 登入要求裝飾器
+# 登入要求裝飾器：檢查用戶是否已登入，如果未登入則重定向到登入頁面
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -96,16 +96,20 @@ def create_post():
 def login():
     """處理用戶登入"""
     if request.method == 'POST':
+        # 從表單獲取用戶輸入的用戶名和密碼
         username = request.form.get('username')
         password = request.form.get('password')
         
+        # 查找用戶並驗證密碼
         user = User.find_by_username(username)
         if user and user.check_password(password):
+            # 登入成功：將用戶資訊存儲到會話中
             session['user_id'] = str(user._id)
             session['username'] = user.username
             flash('登入成功！', 'success')
             return redirect(url_for('index'))
         
+        # 登入失敗：顯示錯誤訊息
         flash('用戶名或密碼錯誤', 'danger')
     
     return render_template('login.html')
@@ -116,12 +120,13 @@ def login():
 def register():
     """處理用戶註冊"""
     if request.method == 'POST':
+        # 從表單獲取註冊資料
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
         
-        # 驗證密碼
+        # 驗證密碼：檢查兩次輸入的密碼是否一致
         if password != confirm_password:
             flash('兩次輸入的密碼不一致', 'danger')
             return render_template('register.html')
@@ -136,10 +141,11 @@ def register():
             flash('電子郵件已被使用', 'danger')
             return render_template('register.html')
         
-        # 創建新用戶
+        # 創建新用戶並保存到資料庫
         user = User(username=username, email=email, password=password)
         user.save()
         
+        # 註冊成功，重定向到登入頁面
         flash('註冊成功！請登入', 'success')
         return redirect(url_for('login'))
     
@@ -150,6 +156,7 @@ def register():
 @app.route('/logout')
 def logout():
     """處理用戶登出"""
+    # 清除所有會話資料
     session.clear()
     flash('您已成功登出', 'success')
     return redirect(url_for('index'))
@@ -162,7 +169,7 @@ def mrt_dashboard():
 
 @app.route('/api/mrt/carriage/<line_name>')
 def get_carriage_data(line_name):
-    """獲取特定路線的車廂擁擠度資料"""
+    """獲取特定路線的車廂擁擠度資料，返回 JSON 格式"""
     data = MRTCarriage.get_latest_by_line(line_name)
     return jsonify([{
         'station_name': c.station_name,
@@ -173,7 +180,7 @@ def get_carriage_data(line_name):
 
 @app.route('/api/mrt/stream')
 def get_stream_data():
-    """獲取捷運人流量資料"""
+    """獲取捷運人流量資料，返回 JSON 格式"""
     data = MRTStream.get_daily_data()
     return jsonify([{
         'timestamp': c.time,  # 直接使用時間字串
@@ -196,7 +203,7 @@ def view_post(post_id):
         author = User.find_by_id(post.user_id)
         # 獲取文章的所有留言
         comments = Comment.find_by_post_id(post_id)
-        # 獲取每個留言的作者
+        # 獲取每個留言的作者資訊
         comment_authors = {str(comment.user_id): User.find_by_id(comment.user_id) for comment in comments}
         return render_template('view_post.html', post=post, author=author, comments=comments, comment_authors=comment_authors)
     return redirect(url_for('index'))
@@ -209,24 +216,27 @@ def add_comment(post_id):
     參數:
         post_id: 文章ID
     """
+    # 從表單獲取留言內容
     content = request.form.get('content')
     if content:
-        # 創建新留言
+        # 創建新留言並保存到資料庫
         comment = Comment(
             content=content,
             post_id=post_id,
-            user_id=session['user_id']
+            user_id=session['user_id']  # 使用當前登入用戶的ID
         )
         comment.save()
         flash('留言發布成功！', 'success')
     else:
         flash('留言內容不能為空', 'danger')
+    # 重定向回文章詳情頁面
     return redirect(url_for('view_post', post_id=post_id))
 
 # 只在直接執行此檔案時運行應用程式
+# 在生產環境中，通常由 WSGI 服務器（如 Gunicorn）來運行
 if __name__ == '__main__':
     app.run(
-        host='0.0.0.0',
-        port=int(os.environ.get('PORT', 8080)),
-        debug=DEBUG
+        host='0.0.0.0',                                    # 監聽所有網路介面
+        port=int(os.environ.get('PORT', 8080)),           # 從環境變數獲取端口號
+        debug=DEBUG                                        # 使用配置的調試模式
     ) 
