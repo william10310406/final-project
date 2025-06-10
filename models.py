@@ -30,8 +30,10 @@ def init_db(mongodb_uri):
 
 # User（用戶）集合操作類
 class User:
-    # 設定集合（相當於關聯式資料庫的表格）
-    collection = db.users
+    @classmethod
+    def get_collection(cls):
+        """獲取集合（相當於關聯式資料庫的表格）"""
+        return db.users if db else None
 
     def __init__(self, username, email, password=None, created_at=None, _id=None):
         """
@@ -57,6 +59,10 @@ class User:
         返回:
             self: 儲存後的用戶物件
         """
+        collection = self.get_collection()
+        if not collection:
+            raise RuntimeError("Database not initialized")
+            
         if not hasattr(self, '_id'):
             # 準備要儲存的用戶資料
             user_data = {
@@ -66,7 +72,7 @@ class User:
                 'created_at': self.created_at
             }
             # 插入資料並獲取 ID
-            result = self.collection.insert_one(user_data)
+            result = collection.insert_one(user_data)
             self._id = result.inserted_id
         return self
 
@@ -91,7 +97,11 @@ class User:
         返回:
             User 物件或 None
         """
-        user_data = cls.collection.find_one({'username': username})
+        collection = cls.get_collection()
+        if not collection:
+            raise RuntimeError("Database not initialized")
+            
+        user_data = collection.find_one({'username': username})
         if user_data:
             user = cls(
                 username=user_data['username'],
@@ -112,7 +122,11 @@ class User:
         返回:
             User 物件或 None
         """
-        user_data = cls.collection.find_one({'email': email})
+        collection = cls.get_collection()
+        if not collection:
+            raise RuntimeError("Database not initialized")
+            
+        user_data = collection.find_one({'email': email})
         if user_data:
             user = cls(
                 username=user_data['username'],
@@ -131,11 +145,15 @@ class User:
         返回:
             用戶物件列表
         """
+        collection = cls.get_collection()
+        if not collection:
+            raise RuntimeError("Database not initialized")
+            
         return [cls(
             username=user_data['username'],
             email=user_data['email'],
             created_at=user_data['created_at']
-        ) for user_data in cls.collection.find()]
+        ) for user_data in collection.find()]
 
     @classmethod
     def find_by_id(cls, user_id):
@@ -146,9 +164,13 @@ class User:
         返回:
             User 物件或 None
         """
+        collection = cls.get_collection()
+        if not collection:
+            raise RuntimeError("Database not initialized")
+            
         try:
             user_id = ObjectId(user_id)
-            user_data = cls.collection.find_one({'_id': user_id})
+            user_data = collection.find_one({'_id': user_id})
             if user_data:
                 user = cls(
                     username=user_data['username'],
@@ -164,8 +186,10 @@ class User:
 
 # Post（文章）集合操作類
 class Post:
-    # 設定集合
-    collection = db.posts
+    @classmethod
+    def get_collection(cls):
+        """獲取集合"""
+        return db.posts if db else None
 
     def __init__(self, title, content, user_id, created_at=None, _id=None):
         """
@@ -190,6 +214,10 @@ class Post:
         返回:
             self: 儲存後的文章物件
         """
+        collection = self.get_collection()
+        if not collection:
+            raise RuntimeError("Database not initialized")
+            
         if not hasattr(self, '_id'):
             # 準備要儲存的文章資料
             post_data = {
@@ -199,24 +227,28 @@ class Post:
                 'created_at': self.created_at
             }
             # 插入資料並獲取 ID
-            result = self.collection.insert_one(post_data)
+            result = collection.insert_one(post_data)
             self._id = result.inserted_id
         return self
 
     @classmethod
     def find_all(cls):
         """
-        獲取所有文章，按創建時間降序排序
+        獲取所有文章
         返回:
             文章物件列表
         """
+        collection = cls.get_collection()
+        if not collection:
+            raise RuntimeError("Database not initialized")
+            
         return [cls(
             title=post_data['title'],
             content=post_data['content'],
             user_id=post_data['user_id'],
             created_at=post_data['created_at'],
             _id=post_data['_id']
-        ) for post_data in cls.collection.find().sort('created_at', -1)]
+        ) for post_data in collection.find()]
 
     @classmethod
     def find_by_user_id(cls, user_id):
@@ -225,15 +257,19 @@ class Post:
         參數:
             user_id: 用戶ID
         返回:
-            該用戶的文章物件列表
+            文章物件列表
         """
+        collection = cls.get_collection()
+        if not collection:
+            raise RuntimeError("Database not initialized")
+            
         return [cls(
             title=post_data['title'],
             content=post_data['content'],
             user_id=post_data['user_id'],
             created_at=post_data['created_at'],
             _id=post_data['_id']
-        ) for post_data in cls.collection.find({'user_id': user_id}).sort('created_at', -1)]
+        ) for post_data in collection.find({'user_id': user_id})]
 
     @classmethod
     def find_by_id(cls, post_id):
@@ -244,9 +280,13 @@ class Post:
         返回:
             Post 物件或 None
         """
+        collection = cls.get_collection()
+        if not collection:
+            raise RuntimeError("Database not initialized")
+            
         try:
             post_id = ObjectId(post_id)
-            post_data = cls.collection.find_one({'_id': post_id})
+            post_data = collection.find_one({'_id': post_id})
             if post_data:
                 return cls(
                     title=post_data['title'],
@@ -259,19 +299,25 @@ class Post:
             return None
         return None
 
+# MRTCarriage（捷運車廂）集合操作類
 class MRTCarriage:
-    """捷運車廂擁擠度資料模型"""
+    @classmethod
+    def get_collection(cls):
+        """獲取集合"""
+        return db.mrt_carriage if db else None
+
     def __init__(self, line_code=None, line_name=None, station_code=None, station_name=None, 
                  to_terminal=None, to_start=None, timestamp=None, _id=None):
-        self._id = _id
         self.line_code = line_code
         self.line_name = line_name
         self.station_code = station_code
         self.station_name = station_name
-        self.to_terminal = self._parse_carriage_status(to_terminal)  # 往終點站方向的擁擠度
-        self.to_start = self._parse_carriage_status(to_start)      # 往起點站方向的擁擠度
-        self.timestamp = timestamp      # 資料時間戳記
-    
+        self.to_terminal = to_terminal
+        self.to_start = to_start
+        self.timestamp = timestamp
+        if _id:
+            self._id = _id
+
     def _parse_carriage_status(self, status_str):
         """解析車廂擁擠度字串"""
         if not status_str or status_str == '----':
@@ -301,59 +347,96 @@ class MRTCarriage:
     
     @staticmethod
     def get_latest_by_line(line_code):
-        """獲取指定路線的最新擁擠度資料"""
-        collection = db['mrt_carriage']
-        # 找出最新的時間戳記
-        latest = list(collection.find({'line_code': line_code}).sort('timestamp', -1).limit(1))
-        if latest:  # 如果有找到資料
-            latest_time = latest[0]['timestamp']
-            # 獲取該時間點的所有站點資料
-            results = collection.find({
-                'line_code': line_code,
-                'timestamp': latest_time
-            }).sort('station_code', 1)
+        """
+        獲取特定路線的最新車廂資料
+        參數:
+            line_code: 路線代碼
+        返回:
+            MRTCarriage 物件列表
+        """
+        collection = MRTCarriage.get_collection()
+        if not collection:
+            raise RuntimeError("Database not initialized")
             
-            return [MRTCarriage(**doc) for doc in results]
-        return []
+        # 獲取最新的時間戳
+        latest = collection.find_one(
+            {'line_code': line_code},
+            sort=[('timestamp', -1)]
+        )
+        
+        if not latest:
+            return []
+        
+        # 獲取該時間戳的所有資料
+        results = collection.find({
+            'line_code': line_code,
+            'timestamp': latest['timestamp']
+        })
+        
+        return [MRTCarriage(
+            line_code=data['line_code'],
+            line_name=data['line_name'],
+            station_code=data['station_code'],
+            station_name=data['station_name'],
+            to_terminal=data['to_terminal'],
+            to_start=data['to_start'],
+            timestamp=data['timestamp'],
+            _id=data['_id']
+        ) for data in results]
 
+# MRTStream（捷運人流）集合操作類
 class MRTStream:
-    """捷運人流量資料模型"""
+    @classmethod
+    def get_collection(cls):
+        """獲取集合"""
+        return db.mrt_stream if db else None
+
     def __init__(self, count=None, timestamp=None, date=None, time=None, weekday=None, _id=None):
-        self._id = _id
-        self.count = count          # 人流量
-        self.timestamp = timestamp  # 資料時間戳記
-        self.date = date           # 日期字串
-        self.time = time           # 時間字串
-        self.weekday = weekday     # 星期幾
-    
+        self.count = count
+        self.timestamp = timestamp
+        self.date = date
+        self.time = time
+        self.weekday = weekday
+        if _id:
+            self._id = _id
+
     @staticmethod
     def get_daily_data(target_date=None):
-        """獲取最新的人流量資料"""
-        collection = db['mrt_stream']
-        
-        # 找出最新的日期
-        latest_record = collection.find_one(sort=[('timestamp', -1)])
-        if not latest_record:
-            return []
+        """
+        獲取特定日期的人流量資料
+        參數:
+            target_date: 目標日期（可選）
+        返回:
+            MRTStream 物件列表
+        """
+        collection = MRTStream.get_collection()
+        if not collection:
+            raise RuntimeError("Database not initialized")
             
-        latest_date = latest_record['timestamp'].date()
+        # 如果沒有指定日期，使用最新的資料
+        if not target_date:
+            latest = collection.find_one(sort=[('timestamp', -1)])
+            if latest:
+                target_date = latest['date']
         
-        # 獲取最新日期的所有資料
-        start = datetime.combine(latest_date, datetime.min.time())
-        end = datetime.combine(latest_date, datetime.max.time())
+        # 查詢指定日期的資料
+        results = collection.find({'date': target_date}).sort('timestamp')
         
-        results = collection.find({
-            'timestamp': {
-                '$gte': start,
-                '$lte': end
-            }
-        }).sort('timestamp', 1)
-        
-        return [MRTStream(**doc) for doc in results]
+        return [MRTStream(
+            count=data['count'],
+            timestamp=data['timestamp'],
+            date=data['date'],
+            time=data['time'],
+            weekday=data['weekday'],
+            _id=data['_id']
+        ) for data in results]
 
+# Comment（留言）集合操作類
 class Comment:
-    # 設定集合
-    collection = db.comments
+    @classmethod
+    def get_collection(cls):
+        """獲取集合"""
+        return db.comments if db else None
 
     def __init__(self, content, post_id, user_id, created_at=None):
         """
@@ -361,7 +444,7 @@ class Comment:
         參數:
             content: 留言內容
             post_id: 文章ID
-            user_id: 留言者ID
+            user_id: 用戶ID
             created_at: 創建時間（若未提供則使用當前時間）
         """
         self.content = content
@@ -375,6 +458,10 @@ class Comment:
         返回:
             self: 儲存後的留言物件
         """
+        collection = self.get_collection()
+        if not collection:
+            raise RuntimeError("Database not initialized")
+            
         if not hasattr(self, '_id'):
             # 準備要儲存的留言資料
             comment_data = {
@@ -384,25 +471,29 @@ class Comment:
                 'created_at': self.created_at
             }
             # 插入資料並獲取 ID
-            result = self.collection.insert_one(comment_data)
+            result = collection.insert_one(comment_data)
             self._id = result.inserted_id
         return self
 
     @classmethod
     def find_by_post_id(cls, post_id):
         """
-        獲取特定文章的所有留言，按創建時間升序排序
+        獲取特定文章的所有留言
         參數:
             post_id: 文章ID
         返回:
-            該文章的留言物件列表
+            Comment 物件列表
         """
+        collection = cls.get_collection()
+        if not collection:
+            raise RuntimeError("Database not initialized")
+            
         return [cls(
             content=comment_data['content'],
             post_id=comment_data['post_id'],
             user_id=comment_data['user_id'],
             created_at=comment_data['created_at']
-        ) for comment_data in cls.collection.find({'post_id': post_id}).sort('created_at', 1)]
+        ) for comment_data in collection.find({'post_id': post_id})]
 
     @classmethod
     def find_by_user_id(cls, user_id):
@@ -411,11 +502,15 @@ class Comment:
         參數:
             user_id: 用戶ID
         返回:
-            該用戶的留言物件列表
+            Comment 物件列表
         """
+        collection = cls.get_collection()
+        if not collection:
+            raise RuntimeError("Database not initialized")
+            
         return [cls(
             content=comment_data['content'],
             post_id=comment_data['post_id'],
             user_id=comment_data['user_id'],
             created_at=comment_data['created_at']
-        ) for comment_data in cls.collection.find({'user_id': user_id}).sort('created_at', -1)] 
+        ) for comment_data in collection.find({'user_id': user_id})] 
