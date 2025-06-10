@@ -5,11 +5,12 @@ from models import User, Post, MRTCarriage, MRTStream
 # 導入日期時間處理模組
 from datetime import datetime
 from functools import wraps
+import os
 
 # 創建 Flask 應用程式實例
 app = Flask(__name__)
 # 設定應用程式密鑰，用於會話管理和訊息閃現
-app.config['SECRET_KEY'] = 'your-secret-key'  # 用於 flash 訊息
+app.secret_key = os.environ.get('SECRET_KEY', 'dev')
 
 # 登入要求裝飾器
 def login_required(f):
@@ -174,6 +175,5 @@ def get_stream_data():
 
 # 只在直接執行此檔案時運行應用程式
 if __name__ == '__main__':
-    # debug=True 啟用調試模式，顯示詳細的錯誤信息
-    # port=5001 指定使用 5001 端口（避免與 AirPlay 衝突）
-    app.run(debug=True, port=5002) 
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port) 

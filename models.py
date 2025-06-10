@@ -23,15 +23,8 @@ def get_local_ip():
         return 'localhost'
 
 # MongoDB 連接設置
-# 如果是在本機運行（你的電腦），使用：
-# MONGODB_URI = 'mongodb://localhost:27017/'
-
-# 如果是要連接到遠端資料庫（其他人的電腦），使用：
-# MONGODB_URI = 'mongodb://140.136.4.182:27017/'
-# 注意：IP 地址需要改成資料庫所在電腦的實際 IP
-
-# 創建 MongoDB 客戶端連接
-MONGODB_URI = 'mongodb://localhost:27017/'  # 本機版本
+# 優先使用環境變數中的連接字符串，如果沒有則使用默認的本地連接
+MONGODB_URI = os.getenv('MONGODB_URI', 'mongodb+srv://william:Aa22303248@cluster0.mpwsv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
 client = MongoClient(MONGODB_URI)
 
 # 選擇資料庫

@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: mrt-visualization
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.0
+      - key: MONGODB_URI
+        value: mongodb+srv://william:Aa22303248@cluster0.mpwsv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+    plan: free
+    region: singapore
+    healthCheckPath: /
+    autoDeploy: true 
