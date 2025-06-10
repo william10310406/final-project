@@ -10,6 +10,7 @@ DATA_FOLDER = f"{BASE_DIR}/MRT_carriage_data"
 LOG_FOLDER = f"{DATA_FOLDER}/logs"
 
 def crawl_data():
+    """主要的爬蟲函數，用於抓取捷運車廂擁擠度資料"""
     headers = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
     }
@@ -62,6 +63,7 @@ def crawl_data():
             write_log(f"❌ {line_name} 處理失敗（非 requests）: {e}")
 
 def merge_data(api_data, station_dict):
+    """合併 API 資料與站點資訊"""
     merged = {code: [name, "----", "----"] for code, name in station_dict.items()}
 
     for point in api_data["data"][0]["data"]:
@@ -87,6 +89,7 @@ def merge_data(api_data, station_dict):
     return results
 
 def save_to_csv(line_info, line_name, results):
+    """將資料儲存為 CSV 檔案"""
     station_data = line_info.get("station")
     if isinstance(station_data, dict) and all(isinstance(v, str) for v in station_data.values()):
         last_name = list(station_data.values())[-1]
@@ -115,6 +118,7 @@ def save_to_csv(line_info, line_name, results):
         write_log(f"✅ Data saved to {file_path}")
 
 def write_log(message):
+    """寫入日誌檔案"""
     today = datetime.now().strftime("%Y-%m-%d")
     os.makedirs(LOG_FOLDER, exist_ok=True)
     log_path = f"{LOG_FOLDER}/{today}.log"

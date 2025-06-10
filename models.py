@@ -2,33 +2,73 @@
 from datetime import datetime
 from pymongo import MongoClient
 from bson import ObjectId
+from werkzeug.security import generate_password_hash, check_password_hash
 
-# 創建 MongoDB 客戶端
+# 創建 MongoDB 客戶端連接
 client = MongoClient('mongodb://localhost:27017/')
+# 選擇資料庫
 db = client.flask_app
 
-# User 集合操作類
+# User（用戶）集合操作類
 class User:
+    # 設定集合（相當於關聯式資料庫的表格）
     collection = db.users
 
-    def __init__(self, username, email, created_at=None):
+    def __init__(self, username, email, password=None, created_at=None):
+        """
+        初始化用戶物件
+        參數:
+            username: 用戶名稱
+            email: 電子郵件
+            password: 密碼（選填，用於註冊）
+            created_at: 創建時間（若未提供則使用當前時間）
+        """
         self.username = username
         self.email = email
+        if password:
+            self.password_hash = generate_password_hash(password)
         self.created_at = created_at or datetime.utcnow()
 
     def save(self):
+        """
+        儲存用戶資料到資料庫
+        返回:
+            self: 儲存後的用戶物件
+        """
         if not hasattr(self, '_id'):
+            # 準備要儲存的用戶資料
             user_data = {
                 'username': self.username,
                 'email': self.email,
+                'password_hash': getattr(self, 'password_hash', None),
                 'created_at': self.created_at
             }
+            # 插入資料並獲取 ID
             result = self.collection.insert_one(user_data)
             self._id = result.inserted_id
         return self
 
+    def check_password(self, password):
+        """
+        檢查密碼是否正確
+        參數:
+            password: 要檢查的密碼
+        返回:
+            bool: 密碼是否正確
+        """
+        if not hasattr(self, 'password_hash'):
+            return False
+        return check_password_hash(self.password_hash, password)
+
     @classmethod
     def find_by_username(cls, username):
+        """
+        根據用戶名查找用戶
+        參數:
+            username: 要查找的用戶名
+        返回:
+            User 物件或 None
+        """
         user_data = cls.collection.find_one({'username': username})
         if user_data:
             user = cls(
@@ -37,41 +77,89 @@ class User:
                 created_at=user_data['created_at']
             )
             user._id = user_data['_id']
+            user.password_hash = user_data.get('password_hash')
+            return user
+        return None
+
+    @classmethod
+    def find_by_email(cls, email):
+        """
+        根據電子郵件查找用戶
+        參數:
+            email: 要查找的電子郵件
+        返回:
+            User 物件或 None
+        """
+        user_data = cls.collection.find_one({'email': email})
+        if user_data:
+            user = cls(
+                username=user_data['username'],
+                email=user_data['email'],
+                created_at=user_data['created_at']
+            )
+            user._id = user_data['_id']
+            user.password_hash = user_data.get('password_hash')
             return user
         return None
 
     @classmethod
     def find_all(cls):
+        """
+        獲取所有用戶
+        返回:
+            用戶物件列表
+        """
         return [cls(
             username=user_data['username'],
             email=user_data['email'],
             created_at=user_data['created_at']
         ) for user_data in cls.collection.find()]
 
-# Post 集合操作類
+# Post（文章）集合操作類
 class Post:
+    # 設定集合
     collection = db.posts
 
     def __init__(self, title, content, user_id, created_at=None):
+        """
+        初始化文章物件
+        參數:
+            title: 文章標題
+            content: 文章內容
+            user_id: 作者ID
+            created_at: 創建時間（若未提供則使用當前時間）
+        """
         self.title = title
         self.content = content
         self.user_id = user_id
         self.created_at = created_at or datetime.utcnow()
 
     def save(self):
+        """
+        儲存文章到資料庫
+        返回:
+            self: 儲存後的文章物件
+        """
         if not hasattr(self, '_id'):
+            # 準備要儲存的文章資料
             post_data = {
                 'title': self.title,
                 'content': self.content,
                 'user_id': self.user_id,
                 'created_at': self.created_at
             }
+            # 插入資料並獲取 ID
             result = self.collection.insert_one(post_data)
             self._id = result.inserted_id
         return self
 
     @classmethod
     def find_all(cls):
+        """
+        獲取所有文章，按創建時間降序排序
+        返回:
+            文章物件列表
+        """
         return [cls(
             title=post_data['title'],
             content=post_data['content'],
@@ -81,6 +169,13 @@ class Post:
 
     @classmethod
     def find_by_user_id(cls, user_id):
+        """
+        獲取特定用戶的所有文章
+        參數:
+            user_id: 用戶ID
+        返回:
+            該用戶的文章物件列表
+        """
         return [cls(
             title=post_data['title'],
             content=post_data['content'],

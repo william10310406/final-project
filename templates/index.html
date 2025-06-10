@@ -1,31 +1,44 @@
-<!-- 繼承基礎模板 -->
+<!-- 繼承基礎模板 base.html，使用 Jinja2 的模板繼承機制 -->
 {% extends "base.html" %}
 
-<!-- 定義頁面標題區塊 -->
+<!-- 定義頁面標題區塊，此內容會被插入到基礎模板的 title block 中 -->
 {% block title %}首頁{% endblock %}
 
-<!-- 定義頁面主要內容區塊 -->
+<!-- 定義頁面主要內容區塊，此內容會被插入到基礎模板的 content block 中 -->
 {% block content %}
+<!-- 使用 Bootstrap 的容器類，上方邊距為 4 個單位 -->
 <div class="container mt-4">
+    <!-- 使用 Flexbox 創建一個兩端對齊的標題區域 -->
     <div class="d-flex justify-content-between align-items-center mb-4">
+        <!-- 頁面主標題 -->
         <h1>Latest Posts</h1>
+        <!-- 創建新文章的按鈕，使用 Bootstrap 的按鈕樣式 -->
         <a href="{{ url_for('create_post') }}" class="btn btn-primary">Create New Post</a>
     </div>
 
+    <!-- 處理 Flash 消息：顯示系統通知或操作結果 -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
+            <!-- 遍歷所有 Flash 消息，根據消息類型顯示不同樣式的提示框 -->
             {% for category, message in messages %}
+                <!-- 使用 Bootstrap 的警告框組件，根據消息類型設置樣式 -->
                 <div class="alert alert-{{ category }}">{{ message }}</div>
             {% endfor %}
         {% endif %}
     {% endwith %}
 
+    <!-- 條件渲染：檢查是否有文章可顯示 -->
     {% if posts %}
+        <!-- 遍歷所有文章並顯示 -->
         {% for post in posts %}
+        <!-- 使用 Bootstrap 的卡片組件顯示每篇文章 -->
         <div class="card mb-3">
             <div class="card-body">
+                <!-- 文章標題 -->
                 <h5 class="card-title">{{ post.title }}</h5>
+                <!-- 文章內容 -->
                 <p class="card-text">{{ post.content }}</p>
+                <!-- 文章發布時間，使用 strftime 格式化日期時間 -->
                 <p class="card-text">
                     <small class="text-muted">Posted on {{ post.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</small>
                 </p>
@@ -33,6 +46,7 @@
         </div>
         {% endfor %}
     {% else %}
+        <!-- 當沒有文章時顯示的提示信息 -->
         <p>No posts yet.</p>
     {% endif %}
 </div>
