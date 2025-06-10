@@ -5,7 +5,10 @@ from datetime import datetime
 from pymongo import MongoClient
 from bson import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
-from config import Config
+try:
+    from config import Config
+except ImportError:
+    from .config import Config
 
 def get_local_ip():
     """獲取本機IP地址"""
