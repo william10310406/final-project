@@ -25,8 +25,26 @@ db = None
 def init_db(mongodb_uri):
     """初始化資料庫連接"""
     global client, db
-    client = MongoClient(mongodb_uri)
+    # 添加連接超時和錯誤重試設置，提高部署環境的連接穩定性
+    client = MongoClient(
+        mongodb_uri,
+        serverSelectionTimeoutMS=5000,  # 5秒服務器選擇超時
+        connectTimeoutMS=10000,         # 10秒連接超時
+        socketTimeoutMS=20000,          # 20秒套接字超時
+        retryWrites=True,               # 啟用寫入重試
+        maxPoolSize=50,                 # 最大連接池大小
+        minPoolSize=5                   # 最小連接池大小
+    )
     db = client.flask_app
+    
+    # 測試資料庫連接
+    try:
+        # 執行簡單的 ping 命令來驗證連接
+        client.admin.command('ping')
+        print("✅ MongoDB 連接成功")
+    except Exception as e:
+        print(f"❌ MongoDB 連接失敗: {e}")
+        raise
 
 # User（用戶）集合操作類
 class User:
